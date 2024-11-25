@@ -1,0 +1,248 @@
+let neonBlue, neonPink, neonGreen, brightGrey; // Declare the color variables
+let staticColors = ["#A3C9A5", "#D0D0D0", "#F5E2B2", "#A2D8FF"]; // TV static colors
+let pulsating = 0;
+let orbSize = 13;
+let orbMax = 13;
+let orbMin = 10;
+let squareSize = 22;
+let angle = 0;
+let gravSquares = [];
+let squareColors = ["#FFFFFF", "#FF0000", "#000000"];
+let squareColorIndex = 0;
+
+function setup() {
+  createCanvas(1440, 1440);  // Adjusted canvas size to 1440x1440
+  noFill();
+  frameRate(60);
+
+  // Define colors here
+  neonBlue = color(0, 191, 255);
+  neonPink = color(255, 20, 147);
+  neonGreen = color(57, 255, 20);
+  brightGrey = color(169, 169, 169);
+}
+
+function draw() {
+  // Background static noise
+  drawStatic();
+
+  // Draw frames
+  drawMainFrame();
+
+  // Draw skulls
+  drawSkulls();
+
+  // Draw signature
+  drawSignature();
+
+  // Draw center animations
+  drawCenterAnimations();
+
+  // Bottom left door with fire animation
+  drawFireDoor();
+
+  // Top right moon with blood effect
+  drawMoon();
+
+  // Bottom rainbow lines
+  drawRainbowLines();
+
+  // Cross shapes
+  drawCrossShapes();
+}
+
+function drawStatic() {
+  for (let i = 0; i < width; i += 10) {
+    for (let j = 0; j < height; j += 10) {
+      let c = random(staticColors);
+      stroke(c);
+      point(i, j);
+    }
+  }
+}
+
+function drawMainFrame() {
+  // Main flashing frame
+  let frameColor = millis() % 400 < 200 ? neonBlue : neonPink;
+  stroke(frameColor);
+  strokeWeight(13);
+  noFill();
+  rect(0, 0, width, height);
+
+  // Secondary flashing frame
+  frameColor = millis() % 600 < 300 ? neonGreen : brightGrey;
+  stroke(frameColor);
+  strokeWeight(3);
+  noFill();
+  rect(3, 3, width - 6, height - 6);
+}
+
+function drawSkulls() {
+  let skullSize = 60;
+  let skullColor = color(57, 255, 20);
+  let skullAlpha = Math.abs(sin(millis() * 0.1)) * 255;
+
+  // Top-left skull
+  drawSkull(skullSize, skullColor, width * 0.05, height * 0.05, skullAlpha);
+  // Top-right skull
+  drawSkull(
+    skullSize,
+    skullColor,
+    width * 0.95 - skullSize,
+    height * 0.05,
+    skullAlpha
+  );
+  // Bottom-right skull
+  drawSkull(
+    skullSize,
+    skullColor,
+    width * 0.95 - skullSize,
+    height * 0.95 - skullSize,
+    skullAlpha
+  );
+}
+
+function drawSkull(size, color, x, y, alpha) {
+  push();
+  translate(x, y);
+  fill(color.levels[0], color.levels[1], color.levels[2], alpha);
+  ellipse(0, 0, size);
+  pop();
+}
+
+function drawSignature() {
+  let sigWidth = 222 * 0.7 * 0.7; // Reduced by 70% and then 30% more, total 51% of original size
+  let sigHeight = 666 * 0.7 * 0.7; // Reduced by 70% and then 30% more, total 51% of original size
+  let sigX = 3 + 100 * 0.7; // Moved 100 pixels to the right and reduced size by 70%
+  let sigY = height - sigHeight - 3 - 50 * 0.7 - 333; // Moved 50 pixels up, reduced size by 70%, and moved up by an additional 333px
+
+  // Signature rectangle
+  stroke(139, 0, 0); // Blood red
+  strokeWeight(5);
+  noFill();
+  rect(sigX, sigY, sigWidth, sigHeight);
+
+  // Text for signature
+  fill(139, 0, 0); // Blood red text
+  textSize(24 * 0.7 * 0.7); // Reduced text size by 70% and then 30% more, total 51% of original size
+  textAlign(LEFT, TOP);
+  textFont("Georgia");
+  let signatureText =
+    "This is the first 20 lines of the script text. This is the first 20 lines of the script text.";
+  text(signatureText, sigX + 10, sigY + 10, sigWidth - 20, sigHeight - 40);
+
+  // Initials EMW
+  textSize(40 * 0.7 * 0.7); // Reduced initials size by 70% and then 30% more, total 51% of original size
+  text("EMW", sigX + 10, sigY + sigHeight - 50);
+}
+
+function drawCenterAnimations() {
+  // Pulsating red orb
+  pulsating = orbMin + (orbMax - orbMin) * Math.abs(sin(millis() * 0.02));
+  fill(255, 0, 0, 150);
+  noStroke();
+  ellipse(width / 2, height / 2, pulsating);
+
+  // Gravitation square that spins 10x faster
+  gravSquares.push(
+    createVector(width / 2 + cos(angle) * 150, height / 2 + sin(angle) * 150)
+  );
+  if (gravSquares.length > 1) {
+    gravSquares.shift();
+  }
+
+  fill(squareColors[squareColorIndex]);
+  noStroke();
+  rect(
+    gravSquares[0].x - squareSize / 2,
+    gravSquares[0].y - squareSize / 2,
+    squareSize,
+    squareSize
+  );
+
+  // Increase the angle increment to 0.1 for 10x faster rotation
+  angle += 0.1;
+
+  // Change square color
+  if (millis() % 3000 < 1000) {
+    squareColorIndex = 0;
+  } else if (millis() % 3000 < 2000) {
+    squareColorIndex = 1;
+  } else {
+    squareColorIndex = 2;
+  }
+}
+
+function drawFireDoor() {
+  let doorX = 10 + 1000; // Moved 1000px to the right
+  let doorY = height - 400 + 333 - 1000 + 200; // Moved 200px down
+  let doorWidth = 200;
+  let doorHeight = 300;
+
+  // Door background
+  fill(173, 216, 230);
+  noStroke();
+  rect(doorX, doorY, doorWidth, doorHeight);
+
+  // Fire animation inside the door
+  fill(255, 69, 0, Math.abs(sin(millis() * 0.05)) * 255);
+  ellipse(doorX + doorWidth / 2, doorY + doorHeight / 2, 100, 150);
+}
+
+function drawMoon() {
+  let moonSize = 100;
+  let moonX = width - 150;
+  let moonY = 100;
+
+  // Glowing moon aura
+  fill(255, 255, 255, 150);
+  noStroke();
+  ellipse(moonX, moonY, moonSize + 20);
+
+  // Blood effect
+  fill(139, 0, 0);
+  stroke(139, 0, 0);
+  strokeWeight(6);
+  beginShape();
+  vertex(moonX, moonY + moonSize / 2);
+  vertex(moonX, moonY + moonSize / 2 + 60);
+  vertex(moonX - 10, moonY + moonSize / 2 + 70);
+  endShape(CLOSE);
+}
+
+function drawRainbowLines() {
+  let rainbowColors = [
+    "#FF0000",
+    "#FF7F00",
+    "#FFFF00",
+    "#00FF00",
+    "#0000FF",
+    "#4B0082",
+    "#8B00FF",
+  ];
+  let lineWidth = width / 7;
+  for (let i = 0; i < 7; i++) {
+    stroke(rainbowColors[i]);
+    line(i * lineWidth, height - 200, (i + 1) * lineWidth, height - 100);
+  }
+}
+
+function drawCrossShapes() {
+  let crossSize = 66;
+  let colors = ["#800080", "#00FF00", "#FFA500"];
+  let pulseSpeed = 0.3;
+
+  for (let i = 0; i < 3; i++) {
+    let crossX = width / 4 + i * (width / 4);
+    let crossY = height / 4;
+    let currentSize = crossSize + sin(millis() * pulseSpeed + i) * 10;
+    drawCross(crossX, crossY, currentSize, colors[i]);
+  }
+}
+
+function drawCross(x, y, size, color) {
+  stroke(color);
+  strokeWeight(8);
+  line(x - size / 2, y, x + size / 2, y);
+  line(x, y - size / 2, x, y + size / 2);
+}
